@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b4162b">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.svg">
+  <meta name="description" content="SonarBangla eDokan — discover Scratch projects and play them in SonarBangla BhorOS.">
+  <title>SonarBangla eDokan — BhorOS Game Shop</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --red: #d9273d;
+      --red-dark: #a9122a;
+      --ink: #20212b;
+      --muted: #747887;
+      --line: #e8e9ef;
+      --paper: #fff;
+      --bg: #f5f6fa;
+      --soft-red: #fff0f2;
+      --shadow: 0 10px 28px rgba(30, 25, 40, .07);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    /* Custom circle cursor: enabled only for mouse/trackpad devices. */
+    @media (hover: hover) and (pointer: fine) {
+      body.custom-cursor, body.custom-cursor button, body.custom-cursor a,
+      body.custom-cursor input, body.custom-cursor label { cursor: none !important; }
+      .cursor-orb, .cursor-trail { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 99999; border-radius: 50%; }
+      .cursor-orb { width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 2px solid #d9273d; background: #d9273d22; box-shadow: 0 0 0 3px #ffffffa8; transform: translate3d(-100px,-100px,0) scale(1); transition: width .12s, height .12s, margin .12s, background .12s, transform .12s; }
+      .cursor-orb.hovering { width: 30px; height: 30px; margin: -15px 0 0 -15px; background: #d9273d16; }
+      .cursor-orb.clicking { transform: translate3d(var(--cx, -100px), var(--cy, -100px), 0) scale(.55); background: #d9273d55; }
+      .cursor-trail { width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; background: #e33347; opacity: .5; animation: trailFade .48s ease-out forwards; }
+      @keyframes trailFade { from { opacity: .52; transform: scale(1); } to { opacity: 0; transform: scale(.1); } }
+      .click-ring { position: fixed; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2px solid #d9273d; border-radius: 50%; pointer-events: none; z-index: 99998; animation: clickPop .42s ease-out forwards; }
+      @keyframes clickPop { from { opacity: .9; transform: scale(.5); } to { opacity: 0; transform: scale(3.4); } }
+    }
+    @media (prefers-reduced-motion: reduce) { .cursor-trail, .click-ring { animation-duration: .01ms !important; } }
+    button:focus-visible, input:focus-visible { outline: 3px solid #ffb3bd; outline-offset: 2px; }
+    .top {
+      color: white;
+      padding: 18px clamp(16px, 4vw, 56px) 28px;
+      background: radial-gradient(circle at 86% 22%, rgba(255,255,255,.16), transparent 27%), linear-gradient(115deg, #9e1026, #e33347 72%, #f1535c);
+      overflow: hidden;
+    }
+    .nav, .hero, .wrap { max-width: 1280px; margin-inline: auto; }
+    .nav { display: flex; align-items: center; gap: 13px; }
+    .brandmark {
+      width: 44px; height: 44px; flex: 0 0 auto; display: grid; place-items: center;
+      color: var(--red-dark); background: white; border-radius: 14px; font-size: 24px; font-weight: 950;
+      box-shadow: 0 6px 18px rgba(70, 0, 15, .2);
+    }
+    .brand { font-size: 20px; font-weight: 850; letter-spacing: -.5px; line-height: 1.15; }
+    .brand small { display: block; margin-top: 4px; font-size: 11px; font-weight: 550; letter-spacing: .15px; opacity: .82; }
+    .navright { margin-left: auto; font-size: 12px; opacity: .88; }
+    .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; padding-top: 29px; }
+    .eyebrow { font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: 1.6px; opacity: .82; }
+    h1 { margin: 9px 0 12px; font-size: clamp(32px, 4.5vw, 54px); line-height: 1.02; letter-spacing: -1.9px; }
+    .hero p { max-width: 610px; margin: 0 0 20px; color: #ffe5e8; }
+    .searchbar { display: flex; gap: 9px; max-width: 690px; }
+    .searchbar input { min-width: 0; flex: 1; border: 0; border-radius: 13px; padding: 14px 16px; color: var(--ink); background: white; box-shadow: 0 6px 18px rgba(70,0,15,.14); }
+    .primary-white { padding: 0 18px; border: 0; border-radius: 12px; color: var(--red-dark); background: white; font-weight: 850; }
+    .heroart { justify-self: end; display: grid; place-items: center; position: relative; width: min(100%, 350px); aspect-ratio: 1.5; border: 1px solid #ffffff35; border-radius: 26px; background: linear-gradient(135deg, #ffffff24, #ffffff08); overflow: hidden; }
+    .heroart::before, .heroart::after { content: ""; position: absolute; border: 1px solid #ffffff35; border-radius: 50%; width: 210px; height: 210px; }
+    .heroart::after { width: 290px; height: 290px; }
+    .gamepad { position: relative; z-index: 1; font-size: 88px; filter: drop-shadow(0 12px 8px #72091e45); }
+    .bubble { position: absolute; z-index: 2; padding: 8px 11px; border-radius: 10px; color: var(--red-dark); background: white; font-size: 11px; font-weight: 850; box-shadow: 0 8px 20px #72091e2e; }
+    .bubble-one { left: 13px; top: 19px; }.bubble-two { right: 13px; bottom: 20px; }
+    .wrap { padding: 26px clamp(14px, 3vw, 38px) 48px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .tab { border: 1px solid var(--line); border-radius: 11px; padding: 10px 15px; color: #5f6270; background: white; font-weight: 800; }
+    .tab.active { color: white; background: var(--red); border-color: var(--red); box-shadow: 0 5px 12px #d9273d26; }
+    .sectionhead { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 14px; }
+    .sectionhead h2 { margin: 0; font-size: 22px; letter-spacing: -.65px; }
+    .sectionhead p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .quiet, .status { color: var(--muted); font-size: 12px; }
+    .status { margin: 8px 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: var(--paper); box-shadow: 0 3px 12px #1c243008; }
+    .thumb { height: 132px; display: grid; place-items: center; position: relative; overflow: hidden; background: linear-gradient(135deg, #ffe4e8, #fff1d3); }
+    .thumb-image { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .thumb .emoji { font-size: 49px; filter: drop-shadow(0 7px 4px #452a2020); }
+    .thumb.has-image .emoji { display: none; }
+    .thumb .tag { z-index: 1; box-shadow: 0 1px 5px #0002; }
+    .tag { position: absolute; top: 10px; left: 10px; padding: 4px 7px; border-radius: 7px; color: var(--red-dark); background: white; font-size: 10px; font-weight: 900; }
+    .cardbody { padding: 13px; }
+    .card h3 { overflow: hidden; margin: 0 0 5px; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
+    .meta { min-height: 34px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .cardfoot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .btn { border: 1px solid #e2e3eb; border-radius: 9px; padding: 8px 10px; color: #414451; background: white; font-size: 12px; font-weight: 800; }
+    .btn.red { color: white; border-color: var(--red); background: var(--red); }
+    .btn.grow { flex: 1; }
+    .panel { margin-bottom: 22px; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: white; box-shadow: var(--shadow); }
+    .fieldlabel { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 850; }
+    .field { width: 100%; min-width: 0; border: 1px solid #dfe0e8; border-radius: 11px; padding: 12px 13px; color: var(--ink); background: white; }
+    .rowline { display: flex; gap: 8px; }
+    .hint { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .uploadbox { padding: 24px 14px; border: 2px dashed #e4b5bc; border-radius: 15px; background: #fff9fa; text-align: center; }
+    .uploadbox strong { display: block; margin: 7px 0 3px; }
+    .uploadbox input { max-width: 100%; margin-top: 10px; }
+    .notice { margin-top: 14px; padding: 12px 14px; border-radius: 11px; color: #73500b; background: #fff6df; font-size: 12px; }
+    .playframe { width: 100%; height: min(68vh, 650px); min-height: 360px; border: 0; border-radius: 14px; background: #191a22; }
+    .empty { grid-column: 1 / -1; padding: 30px 20px; border: 1px dashed #d9dbe5; border-radius: 15px; color: var(--muted); background: white; text-align: center; }
+    .footer { padding: 20px; border-top: 1px solid var(--line); color: var(--muted); background: #fff; text-align: center; font-size: 12px; }
+    .hidden { display: none !important; }
+    @media (max-width: 950px) { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .hero { grid-template-columns: 1fr; } .heroart { display: none; } }
+    @media (max-width: 540px) {
+      .navright { display: none; } .hero { padding-top: 22px; } h1 { font-size: 36px; }
+      .searchbar { flex-wrap: wrap; } .searchbar input { flex-basis: 100%; }
+      .primary-white { padding: 12px 16px; flex: 1; }
+      .grid { gap: 9px; } .thumb { height: 100px; } .thumb .emoji { font-size: 37px; }
+      .cardbody { padding: 10px; } .card h3 { font-size: 13px; } .meta { font-size: 11px; }
+      .cardfoot { flex-direction: column; } .cardfoot .btn { width: 100%; }
+      .sectionhead { align-items: start; flex-direction: column; } .rowline { flex-direction: column; }
+      .panel { padding: 15px; } .playframe { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="nav">
+      <div class="brandmark" aria-hidden="true">ভ</div>
+      <div class="brand">SonarBangla eDokan<small>Games for SonarBangla BhorOS</small></div>
+      <div class="navright">Browse · Copy · Play · Share</div>
+    </div>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">The BhorOS game shop</div>
+        <h1>Discover your next<br>Scratch adventure.</h1>
+        <p>Explore public projects from the Scratch community, launch a game in the built-in player, or paste a project ID. You can also select a local .sb3 file to keep a copy or import it in the editor.</p>
+        <div class="searchbar">
+          <input id="searchInput" type="search" placeholder="Search Scratch projects…" aria-label="Search Scratch projects">
+          <button class="primary-white" id="searchBtn" type="button">Search games ↗</button>
+        </div>
+      </div>
+      <div class="heroart" aria-hidden="true">
+        <span class="bubble bubble-one">SCRATCH PROJECTS</span>
+        <div class="gamepad">🎮</div>
+        <span class="bubble bubble-two">Made to play!</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="tabs" aria-label="eDokan sections">
+      <button class="tab active" type="button" data-tab="discover">🌐 Discover</button>
+      <button class="tab" type="button" data-tab="paste">🔗 Paste project link</button>
+      <button class="tab" type="button" data-tab="upload">⬆ Upload a game</button>
+    </nav>
+
+    <section id="discover">
+      <div class="sectionhead">
+        <div><h2>Explore Scratch</h2><p>Find public games and open them without leaving the shop.</p></div>
+        <span class="quiet" id="resultCount">Loading…</span>
+      </div>
+      <div class="status" id="searchStatus" role="status" aria-live="polite">Loading Scratch projects…</div>
+      <div class="grid" id="projectGrid"><div class="empty">Loading projects…</div></div>
+    </section>
+
+    <section id="paste" class="hidden">
+      <div class="panel">
+        <div class="sectionhead"><div><h2>Paste a Scratch project</h2><p>Paste its URL or numeric project ID to launch it.</p></div></div>
+        <label class="fieldlabel" for="projectUrl">Scratch project URL or ID</label>
+        <div class="rowline">
+          <input class="field" id="projectUrl" autocomplete="url" placeholder="https://scratch.mit.edu/projects/123456789/">
+          <button class="btn red" id="openProject" type="button">Open project ↗</button>
+        </div>
+        <p class="hint">Example ID: 123456789. The project must be public and accessible. The player uses TurboWarp's embed service.</p>
+        <div class="status" id="pasteStatus" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="upload" class="hidden">
+      <div class="panel">
+        <div class="sectionhead"><div><h2>Upload your own game</h2><p>Pick a Scratch project file from your computer.</p></div></div>
+        <div class="uploadbox">
+          <div style="font-size:32px" aria-hidden="true">📦</div>
+          <strong>Bring your own Scratch project</strong>
+          <span class="hint">Supported file: .sb3</span><br>
+          <input id="sb3File" type="file" accept=".sb3,application/zip" aria-label="Choose a Scratch SB3 file">
+        </div>
+        <div id="fileStatus" class="status" role="status" aria-live="polite">No file selected.</div>
+        <div class="cardfoot">
+          <button class="btn red" id="editorBtn" type="button">Open TurboWarp Editor ↗</button>
+          <button class="btn" id="downloadCopy" type="button" disabled>Download a copy</button>
+        </div>
+        <div class="notice"><strong>About local .sb3 playback:</strong> This standalone HTML shop cannot directly run a local Scratch file in its own player without bundling a Scratch VM/runtime. Select a file here, then open TurboWarp Editor and use its file-upload option to import the project. “Download a copy” saves the selected file again; it does not upload it to a server.</div>
+      </div>
+    </section>
+
+    <section id="playerSection" class="hidden" aria-label="Scratch project player">
+      <div class="sectionhead">
+        <div><h2 id="playerTitle">Now playing</h2><p id="playerSub">Scratch project player</p></div>
+        <button class="btn" id="closePlayer" type="button">✕ Close player</button>
+      </div>
+      <iframe class="playframe" id="playerFrame" title="Scratch game player" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <p class="hint">Player is hosted by TurboWarp. Project access, assets, and gameplay are controlled by the project's creator and the hosting service.</p>
+    </section>
+  </main>
+
+  <footer class="footer">SonarBangla eDokan · A game shop concept for SonarBangla BhorOS · Scratch projects belong to their respective creators.</footer>
+
+  <script>
+    'use strict';
+
+    const byId = (id) => document.getElementById(id);
+    let selectedFile = null;
+    let currentProjects = [];
+
+    // Accept either a plain numeric Scratch project ID or a Scratch URL.
+    // The regex delimiters and escaped slashes are intentionally written as normal JS regex syntax.
+    function projectId(input) {
+      const value = String(input || '').trim();
+      if (/^\d+$/.test(value)) return value;
+      const match = value.match(/scratch\.mit\.edu\/projects\/(\d+)/i);
+      return match ? match[1] : null;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[character]);
+    }
+
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach((button) => {
+        const active = button.dataset.tab === name;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      ['discover', 'paste', 'upload'].forEach((id) => byId(id).classList.toggle('hidden', id !== name));
+      if (name === 'paste') byId('projectUrl').focus({ preventScroll: true });
+    }
+
+    document.querySelectorAll('.tab').forEach((button) => {
+      button.addEventListener('click', () => showTab(button.dataset.tab));
+    });
+
+    function playProject(id, title = 'Scratch Project') {
+      if (!id || !/^\d+$/.test(String(id))) {
+        byId('pasteStatus').textContent = 'Please enter a valid Scratch project URL or numeric ID.';
+        showTab('paste');
+        return;
+      }
+      byId('playerTitle').textContent = title || 'Scratch Project';
+      byId('playerSub').textContent = 'Scratch project ID: ' + id;
+      byId('playerFrame').src = 'https://turbowarp.org/' + encodeURIComponent(id) + '/embed';
+      byId('playerSection').classList.remove('hidden');
+      byId('playerSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    byId('closePlayer').addEventListener('click', () => {
+      byId('playerFrame').src = 'about:blank';
+      byId('playerSection').classList.add('hidden');
+    });
+
+    byId('openProject').addEventListener('click', () => {
+      const id = projectId(byId('projectUrl').value);
+      if (!id) {
+        byId('pasteStatus').textContent = 'Paste a Scratch project URL (for example, https://scratch.mit.edu/projects/123456789/) or a numeric ID.';
+        return;
+      }
+      byId('pasteStatus').textContent = '';
+      playProject(id, 'Scratch project ' + id);
+    });
+
+    byId('projectUrl').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') byId('openProject').click();
+    });
+
+    function renderProjects(projects) {
+      const grid = byId('projectGrid');
+      currentProjects = Array.isArray(projects) ? projects : [];
+      if (!currentProjects.length) {
+        grid.innerHTML = '<div class="empty">No projects found. Try a different search term.</div>';
+        return;
+      }
+      const emojis = ['🧩', '🚀', '🐱', '🏁', '🌈', '🕹️', '🧙', '🐸', '⚽', '🐉', '🎨', '🏎️'];
+      grid.innerHTML = currentProjects.map((project, index) => {
+        const id = String(project.id ?? '');
+        const title = project.title || 'Untitled Scratch project';
+        const username = project.author && project.author.username ? project.author.username : 'Scratch creator';
+        const views = Number(project.stats && project.stats.views ? project.stats.views : 0);
+        const loves = Number(project.stats && project.stats.loves ? project.stats.loves : 0);
+        const stats = [views ? views.toLocaleString() + ' views' : '', loves ? loves.toLocaleString() + ' loves' : ''].filter(Boolean).join(' · ');
+        const thumbnail = typeof project.image === 'string' && project.image
+          ? project.image
+          : `https://uploads.scratch.mit.edu/get_image/project/${encodeURIComponent(id)}_480x360.png`;
+        return `<article class="card">
+          <div class="thumb has-image"><span class="tag">SCRATCH</span><img class="thumb-image" src="${escapeHtml(thumbnail)}" alt="Thumbnail for ${escapeHtml(title)}" loading="lazy" referrerpolicy="no-referrer"><span class="emoji" aria-hidden="true">${emojis[index % emojis.length]}</span></div>
+          <div class="cardbody"><h3 title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
+          <div class="meta">by ${escapeHtml(username)}${stats ? '<br>' + escapeHtml(stats) : ''}</div>
+          <div class="cardfoot"><button class="btn red grow" type="button" data-play-id="${escapeHtml(id)}">▶ Play</button><button class="btn" type="button" data-copy-id="${escapeHtml(id)}">Copy ID</button></div></div>
+        </article>`;
+      }).join('');
+
+      grid.querySelectorAll('.thumb-image').forEach((img) => {
+        img.addEventListener('error', () => {
+          // If the API image URL is stale, retry the standard Scratch thumbnail endpoint.
+          const card = img.closest('.thumb');
+          if (!img.dataset.fallbackTried) {
+            img.dataset.fallbackTried = '1';
+            const id = img.closest('.card').querySelector('[data-play-id]')?.dataset.playId;
+            if (id) {
+              img.src = `https://uploads.scratch.mit.edu/get_image/project/${encodeURIComponent(id)}_480x360.png`;
+              return;
+            }
+          }
+          card?.classList.remove('has-image');
+          img.remove();
+        }, { once: true });
+      });
+
+      grid.querySelectorAll('[data-play-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = currentProjects.find((project) => String(project.id) === button.dataset.playId);
+          playProject(button.dataset.playId, item ? item.title : 'Scratch Project');
+        });
+      });
+      grid.querySelectorAll('[data-copy-id]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const id = button.dataset.copyId;
+          try {
+            await navigator.clipboard.writeText(id);
+            const previous = button.textContent;
+            button.textContent = 'Copied!';
+            window.setTimeout(() => { button.textContent = previous; }, 1300);
+          } catch (error) {
+            window.prompt('Copy this Scratch project ID:', id);
+          }
+        });
+      });
+    }
+
+    async function searchProjects(query = '') {
+      const searchTerm = String(query || '').trim() || 'trending';
+      byId('searchStatus').textContent = 'Searching Scratch…';
+      byId('resultCount').textContent = 'Loading…';
+      byId('projectGrid').innerHTML = '<div class="empty">Searching public Scratch projects…</div>';
+      try {
+        const endpoint = '/api/scratch-search?limit=24&offset=0&language=en&mode=trending&q=' + encodeURIComponent(searchTerm);
+        const response = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error('Scratch search returned HTTP ' + response.status);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Unexpected Scratch API response.');
+        renderProjects(data);
+        byId('searchStatus').textContent = data.length ? 'Showing public Scratch search results for “' + searchTerm + '”.' : 'No results. Try another keyword.';
+        byId('resultCount').textContent = data.length + ' projects';
+      } catch (error) {
+        byId('projectGrid').innerHTML = '<div class="empty">Could not load Scratch search results. The same-site /api/scratch-search endpoint may not be deployed, or its CORS allowlist may not match this website. You can still paste a project URL or ID in the “Paste project link” tab.<br><br><button class="btn" type="button" id="retrySearch">Try again</button></div>';
+        byId('searchStatus').textContent = 'Scratch search is unavailable right now. The same-site proxy may need to be deployed with this page.';
+        byId('resultCount').textContent = 'Unavailable';
+        byId('retrySearch').addEventListener('click', () => searchProjects(byId('searchInput').value));
+      }
+    }
+
+    byId('searchBtn').addEventListener('click', () => searchProjects(byId('searchInput').value));
+    byId('searchInput').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') searchProjects(byId('searchInput').value);
+    });
+
+    byId('sb3File').addEventListener('change', (event) => {
+      const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      selectedFile = null;
+      byId('downloadCopy').disabled = true;
+      if (!file) {
+        byId('fileStatus').textContent = 'No file selected.';
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith('.sb3')) {
+        byId('fileStatus').textContent = 'Please select a Scratch .sb3 project file.';
+        event.target.value = '';
+        return;
+      }
+      selectedFile = file;
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      byId('fileStatus').textContent = 'Selected: ' + file.name + ' (' + sizeMB + ' MB). You can download a copy below, or import the original file into the editor.';
+      byId('downloadCopy').disabled = false;
+    });
+
+    byId('downloadCopy').addEventListener('click', () => {
+      if (!selectedFile) return;
+      const objectUrl = URL.createObjectURL(selectedFile);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = selectedFile.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+    });
+
+    byId('editorBtn').addEventListener('click', () => {
+      window.open('https://turbowarp.org/editor', '_blank', 'noopener,noreferrer');
+    });
+
+    // Initial list. If the online API is blocked, the paste-project tool remains usable.
+    searchProjects('trending');
+  </script>
+</body>
+</html>
